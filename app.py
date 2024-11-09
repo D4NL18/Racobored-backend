@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from models import db, User, Task, UserTask
@@ -83,7 +84,7 @@ def random_tasks():
 # Get do histórico do usuário
 @app.route('/task_history/<int:user_id>', methods=['GET'])
 def task_history(user_id):
-    user_tasks = UserTask.query.filter_by(user_id=user_id).all()
+    user_tasks = UserTask.query.filter_by(user_id=user_id).order_by(desc(UserTask.id)).all()
     history = [{'task_id': ut.task_id, 'nome': ut.task.nome, 'descricao': ut.task.descricao, 'status': ut.status, 'pontuacao': ut.task.pontuacao} for ut in user_tasks]
     return jsonify({'history': history}), 200
 
@@ -149,7 +150,7 @@ def user_profile(user_id):
         'id': user.id,
         'nome': user.nome,
         'email': user.email,
-        'pontos': sum(ut.task.pontuacao for ut in UserTask.query.filter_by(user_id=user_id).all()),  # Calcula os pontos totais
+        'pontos': sum(ut.task.pontuacao for ut in UserTask.query.filter_by(user_id=user_id).all()),
     }
     return jsonify({'user': user_data}), 200
 
